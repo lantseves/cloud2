@@ -9,11 +9,10 @@ public class ConnectionHandler implements Runnable {
     private DataInputStream is;
     private DataOutputStream os;
 
-    public ConnectionHandler(Socket socket) throws IOException, InterruptedException {
+    public ConnectionHandler(Socket socket) throws IOException {
         System.out.println("Connection accepted");
         is = new DataInputStream(socket.getInputStream());
         os = new DataOutputStream(socket.getOutputStream());
-        Thread.sleep(2000);
     }
 
 
@@ -41,8 +40,27 @@ public class ConnectionHandler implements Runnable {
                     }
                     os.writeUTF("OK");
                 }
+
+                if (command.equals("./download")) {
+                    String fileName = is.readUTF();
+                    System.out.println("fileName: " + fileName);
+                    File file = new File(Server.serverPath + "/" + fileName);
+                    if (!file.exists()) {
+                        os.writeUTF("file not found");
+                        continue;
+                    }
+                    os.writeLong(file.length());
+
+                    FileInputStream fis = new FileInputStream(file);
+                    while (fis.available() > 0) {
+                        int bytesRead = fis.read(buffer);
+                        os.write(buffer, 0, bytesRead);
+                    }
+                    os.flush();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
+                break;
             }
         }
     }

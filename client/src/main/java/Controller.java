@@ -8,10 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
@@ -28,9 +25,32 @@ public class Controller implements Initializable {
     public static Socket socket;
     private DataInputStream is;
     private DataOutputStream os;
+    private String clientPath ;
 
     public void sendCommand(ActionEvent actionEvent) {
-        System.out.println("SEND!");
+        String fileName = text.getText() ;
+        try {
+            os.writeUTF("./download");
+            os.writeUTF(fileName);
+
+            File file = new File(clientPath + "/" + fileName);
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            long fileLength = is.readLong() ;
+            try(FileOutputStream fos = new FileOutputStream(file)) {
+                byte [] buffer = new byte[1024];
+                for (long i = 0; i < (fileLength / 1024 == 0 ? 1 : fileLength / 1024); i++) {
+                    int bytesRead = is.read(buffer);
+                    fos.write(buffer, 0, bytesRead);
+                }
+                fos.flush();
+            }
+            clientFileList.add(file);
+            listView.getItems().add(file.getName());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -42,14 +62,14 @@ public class Controller implements Initializable {
             os = new DataOutputStream(socket.getOutputStream());
             Thread.sleep(1000);
             clientFileList = new ArrayList<>();
-            String clientPath = "./client/src/main/resources/";
+            clientPath = "./client/src/main/resources/";
             File dir = new File(clientPath);
             if (!dir.exists()) {
                 throw new RuntimeException("directory resource not exists on client");
             }
             for (File file : Objects.requireNonNull(dir.listFiles())) {
                 clientFileList.add(file);
-                listView.getItems().add(file.getName() + " : " + file.length());
+                listView.getItems().add(file.getName());
             }
             listView.setOnMouseClicked(a -> {
                 if (a.getClickCount() == 2) {
