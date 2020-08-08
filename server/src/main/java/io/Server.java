@@ -1,3 +1,5 @@
+package io;
+
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
@@ -5,7 +7,7 @@ import java.util.concurrent.Executors;
 
 public class Server {
 
-    public final static String serverPath = "./server/src/main/resources";
+    public final static String serverPath = "./server/src/main/resources/users";
 
     public static void main(String[] args) {
         try(ServerSocket server = new ServerSocket(8189)) {

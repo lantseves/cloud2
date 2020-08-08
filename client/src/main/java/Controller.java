@@ -1,12 +1,12 @@
-import javafx.collections.ListChangeListener;
+
+import io.netty.channel.socket.SocketChannel;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
-import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import main.java.FilePartMessage;
+import netty.NettyClient;
 
 import java.io.*;
 import java.net.Socket;
@@ -26,41 +26,19 @@ public class Controller implements Initializable {
     private DataInputStream is;
     private DataOutputStream os;
     private String clientPath ;
+    private NettyClient nettyClient ;
 
     public void sendCommand(ActionEvent actionEvent) {
-        String fileName = text.getText() ;
-        try {
-            os.writeUTF("./download");
-            os.writeUTF(fileName);
-
-            File file = new File(clientPath + "/" + fileName);
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            long fileLength = is.readLong() ;
-            try(FileOutputStream fos = new FileOutputStream(file)) {
-                byte [] buffer = new byte[1024];
-                for (long i = 0; i < (fileLength / 1024 == 0 ? 1 : fileLength / 1024); i++) {
-                    int bytesRead = is.read(buffer);
-                    fos.write(buffer, 0, bytesRead);
-                }
-                fos.flush();
-            }
-            clientFileList.add(file);
-            listView.getItems().add(file.getName());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        FilePartMessage part = new FilePartMessage();
+        part.setFileContent(text.getText().getBytes());
+        nettyClient.writeMessage(part);
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // TODO: 7/21/2020 init connect to server
-        try{
-            socket = new Socket("localhost", 8189);
-            is = new DataInputStream(socket.getInputStream());
-            os = new DataOutputStream(socket.getOutputStream());
-            Thread.sleep(1000);
+        try {
+            nettyClient = new NettyClient();
+
             clientFileList = new ArrayList<>();
             clientPath = "./client/src/main/resources/";
             File dir = new File(clientPath);
@@ -71,31 +49,11 @@ public class Controller implements Initializable {
                 clientFileList.add(file);
                 listView.getItems().add(file.getName());
             }
+
             listView.setOnMouseClicked(a -> {
-                if (a.getClickCount() == 2) {
-                    String fileName = listView.getSelectionModel().getSelectedItem();
-                    File currentFile = findFileByName(fileName);
-                    if (currentFile != null) {
-                        try {
-                            os.writeUTF("./upload");
-                            os.writeUTF(fileName);
-                            os.writeLong(currentFile.length());
-                            FileInputStream fis = new FileInputStream(currentFile);
-                            byte [] buffer = new byte[1024];
-                            while (fis.available() > 0) {
-                                int bytesRead = fis.read(buffer);
-                                os.write(buffer, 0, bytesRead);
-                            }
-                            os.flush();
-                            String response = is.readUTF();
-                            System.out.println(response);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
+
             });
-        } catch (Exception e) {
+        }catch (Exception e) {
             e.printStackTrace();
         }
     }

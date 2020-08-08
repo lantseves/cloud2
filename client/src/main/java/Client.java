@@ -10,7 +10,7 @@ import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 
-public class Main extends Application {
+public class Client extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -20,6 +20,7 @@ public class Main extends Application {
         primaryStage.show();
         primaryStage.setOnCloseRequest(event -> {
             try {
+                if(Controller.socket != null)
                 Controller.socket.getOutputStream().write("close".getBytes());
             } catch (IOException e) {
                 e.printStackTrace();

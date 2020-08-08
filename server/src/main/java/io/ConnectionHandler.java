@@ -1,8 +1,8 @@
+package io;
+
 import java.io.*;
-import java.lang.reflect.Field;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
+import java.net.SocketException;
 
 public class ConnectionHandler implements Runnable {
 
@@ -23,6 +23,7 @@ public class ConnectionHandler implements Runnable {
         while (true) {
             try {
                 String command = is.readUTF();
+
                 if (command.equals("./upload")) {
                     String fileName = is.readUTF();
                     System.out.println("fileName: " + fileName);
@@ -39,25 +40,30 @@ public class ConnectionHandler implements Runnable {
                         }
                     }
                     os.writeUTF("OK");
-                }
 
-                if (command.equals("./download")) {
+                } else if (command.equals("./download")) {
                     String fileName = is.readUTF();
                     System.out.println("fileName: " + fileName);
                     File file = new File(Server.serverPath + "/" + fileName);
                     if (!file.exists()) {
                         os.writeUTF("file not found");
                         continue;
+                    } else {
+                        os.writeUTF("file found");
                     }
                     os.writeLong(file.length());
 
-                    FileInputStream fis = new FileInputStream(file);
-                    while (fis.available() > 0) {
-                        int bytesRead = fis.read(buffer);
-                        os.write(buffer, 0, bytesRead);
+                    try(FileInputStream fis = new FileInputStream(file)) {
+                        while (fis.available() > 0) {
+                            int bytesRead = fis.read(buffer);
+                            os.write(buffer, 0, bytesRead);
+                        }
+                        os.flush();
                     }
-                    os.flush();
                 }
+            } catch (SocketException e) {
+                System.out.println("Client leave");
+                break;
             } catch (Exception e) {
                 e.printStackTrace();
                 break;
