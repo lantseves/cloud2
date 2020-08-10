@@ -8,13 +8,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
-import main.java.AbstractMessage;
-import main.java.FilePartMessage;
-import netty.coder.MessageEncode;
-
-import java.nio.file.Paths;
+import io.netty.handler.codec.serialization.ClassResolvers;
+import io.netty.handler.codec.serialization.ObjectDecoder;
+import io.netty.handler.codec.serialization.ObjectEncoder;
 
 public class NettyClient {
     private SocketChannel channel ;
@@ -32,16 +28,12 @@ public class NettyClient {
                 bootstrap.handler(new ChannelInitializer<SocketChannel>() {
 
                     @Override
-                    public void initChannel(SocketChannel ch)
-                            throws Exception {
+                    public void initChannel(SocketChannel ch) {
                         channel = ch ;
                         ch.pipeline().addLast(
-                                new StringDecoder(),
-                                new MessageEncode(),
-                                new ClientHandler(msg -> {
-                                    //TODO Получение сообщения
-                                    System.out.println(msg);
-                                }));
+                                new ObjectEncoder(),
+                                new ObjectDecoder(1024 * 1024 * 100, ClassResolvers.cacheDisabled(null)),
+                                new ClientHandler(System.out::println)); //TODO Получение сообщения
                     }
                 });
 
@@ -58,13 +50,7 @@ public class NettyClient {
     }
 
     //Отправляем сообщение на сервер
-    public void writeMessage(AbstractMessage msg) {
-        msg = new FilePartMessage(
-                1 ,
-                2,
-                Paths.get("./client/src/main/resources"),
-                new byte[]{(byte) 0x2, (byte) 0x3, (byte) 0x94}) ;
-        System.out.println(msg);
+    public void writeMessage(Object msg) {
         channel.writeAndFlush(msg);
     }
 }

@@ -13,8 +13,7 @@ public class File {
     public File() {
     }
 
-    public File(int id, Path path, Path parent, String filename, User owner) {
-        this.id = id;
+    public File( Path path, Path parent, String filename, User owner) {
         this.path = path;
         this.parent = parent;
         this.filename = filename;
@@ -66,8 +65,7 @@ public class File {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         File file = (File) o;
-        return id == file.id &&
-                path.equals(file.path) &&
+        return path.equals(file.path) &&
                 parent.equals(file.parent) &&
                 filename.equals(file.filename) &&
                 Objects.equals(owner, file.owner);

@@ -3,6 +3,8 @@ package repository.datasource.mysql;
 import repository.datasource.DataSource;
 import repository.entity.File;
 import repository.entity.User;
+
+import java.nio.file.Path;
 import java.sql.*;
 import java.util.List;
 
@@ -82,6 +84,11 @@ public class MySQLDataSource implements DataSource {
     @Override
     public List<File> getFileListOfOtherOwners(String login) {
         return fileDataSource.getFileListOfOtherOwners(userDataSource.getUserByLogin(login).getId()) ;
+    }
+
+    @Override
+    public File getFileByPath(Path path) {
+        return fileDataSource.getFileByPath(path) ;
     }
 
     @Override

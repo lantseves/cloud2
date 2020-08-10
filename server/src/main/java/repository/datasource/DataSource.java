@@ -3,6 +3,7 @@ package repository.datasource;
 import repository.entity.File;
 import repository.entity.User;
 
+import java.nio.file.Path;
 import java.util.List;
 
 public interface DataSource {
@@ -27,6 +28,8 @@ public interface DataSource {
     List<File> getFileListOfOtherOwners(int idUser);
 
     List<File> getFileListOfOtherOwners(String login);
+
+    File getFileByPath(Path path) ;
 
     List<File> getFullFileListAvailableUser(int idUser);
 

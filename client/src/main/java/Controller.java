@@ -1,11 +1,10 @@
 
-import io.netty.channel.socket.SocketChannel;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import main.java.FilePartMessage;
+import main.java.message.FilePartMessage;
 import netty.NettyClient;
 
 import java.io.*;
@@ -27,6 +26,7 @@ public class Controller implements Initializable {
     private DataOutputStream os;
     private String clientPath ;
     private NettyClient nettyClient ;
+    private ClientModel clientModel ;
 
     public void sendCommand(ActionEvent actionEvent) {
         FilePartMessage part = new FilePartMessage();

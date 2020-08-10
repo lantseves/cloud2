@@ -1,26 +1,22 @@
-package main.java;
+package main.java.message;
 
-import java.nio.file.Path;
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class FilePartMessage extends AbstractMessage {
+public class FilePartMessage implements Serializable {
     private int numberPart ;
     private int countParts;
-    private Path path;
-    private int pathLength ;
+    private String path;
     private byte[] fileContent;
-    private int fileContentLength;
 
     public FilePartMessage() {
     }
 
-    public FilePartMessage(int numberPart, int countParts, Path path, byte[] fileContent) {
+    public FilePartMessage(int numberPart, int countParts, String path, byte[] fileContent) {
         this.numberPart = numberPart;
         this.countParts = countParts;
         this.path = path;
-        this.pathLength = path.toString().length();
         this.fileContent = fileContent;
-        this.fileContentLength = fileContent.length;
     }
 
     public int getNumberPart() {
@@ -39,19 +35,13 @@ public class FilePartMessage extends AbstractMessage {
         this.countParts = countParts;
     }
 
-    public Path getPath() {
+    public String getPath() {
         return path;
     }
 
-    public void setPath(Path path) {
+    public void setPath(String path) {
         this.path = path;
-        this.pathLength = path.toString().length();
     }
-
-    public int getPathLength() {
-        return pathLength;
-    }
-
 
     public byte[] getFileContent() {
         return fileContent;
@@ -59,11 +49,6 @@ public class FilePartMessage extends AbstractMessage {
 
     public void setFileContent(byte[] fileContent) {
         this.fileContent = fileContent;
-        this.fileContentLength = fileContent.length;
-    }
-
-    public int getFileContentLength() {
-        return fileContentLength;
     }
 
     @Override
@@ -71,10 +56,8 @@ public class FilePartMessage extends AbstractMessage {
         return "FilePartMessage{" +
                 "numberPart=" + numberPart +
                 ", countParts=" + countParts +
-                ", path=" + path +
-                ", pathLength=" + pathLength +
+                ", path='" + path + '\'' +
                 ", fileContent=" + Arrays.toString(fileContent) +
-                ", fileContentLength=" + fileContentLength +
                 '}';
     }
 }

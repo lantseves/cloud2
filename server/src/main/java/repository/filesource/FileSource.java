@@ -1,15 +1,31 @@
 package repository.filesource;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import io.netty.channel.socket.SocketChannel;
 
+import java.io.IOException;
+import java.nio.file.*;
+
+// Управляет файлами на сервере
 public class FileSource {
-    public final static String FILE_PATH = "./server/src/main/resources/users";
 
-    public static void main(String[] args) {
-        Path path = Paths.get("./server/src/main/resources/users");
-        Path parent = path.getFileName();
-        System.out.println(parent);
+    public boolean writeFilePart(Path filePath, byte[] fileContent, boolean appended) {
+        try {
+            if (Files.notExists(filePath)) {
+                Files.createDirectories(filePath.getParent()) ;
+            }
+            if (!appended) {
+                Files.write(filePath, fileContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            } else {
+                Files.write(filePath, fileContent, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true ;
     }
 
+    public void readFilePart(Path filePath, SocketChannel channel) {
+        //TODO реализовать отправку файла частями
+    }
 }
