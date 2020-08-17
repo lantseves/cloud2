@@ -15,16 +15,12 @@ public class Client extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
-        primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new Scene(root));
+        primaryStage.setTitle("Client cloud");
+        primaryStage.setScene(new Scene(root, 900, 600));
+        primaryStage.setResizable(false);
         primaryStage.show();
         primaryStage.setOnCloseRequest(event -> {
-            try {
-                if(Controller.socket != null)
-                Controller.socket.getOutputStream().write("close".getBytes());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            ClientModel.getInstance().closeSocket();
             Platform.exit();
         });
     }

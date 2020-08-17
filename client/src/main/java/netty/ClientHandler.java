@@ -19,11 +19,12 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
+        /*
         Path pathRoot = Paths.get("./client/src/main/user_files") ;
         ctx.writeAndFlush(new AuthorizationMessage("lantsev","123"));
-        ctx.writeAndFlush(new FileListMessage("./")) ;
 
-        /*
+
+
         Path path = Paths.get("./client/src/main/user_files/mydirectory/lesson5.sql") ;
         try(FileInputStream fis = new FileInputStream(path.toFile())) {
             int countParts = (int)Math.ceil(fis.available() / 1024f) ;
@@ -40,7 +41,9 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         }catch (Exception e) {
             e.printStackTrace();
         }
-        */
+        ctx.writeAndFlush(new FileListMessage("./")) ;
+        
+         */
     }
 
     @Override

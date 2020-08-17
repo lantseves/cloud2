@@ -15,7 +15,7 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 public class NettyClient {
     private SocketChannel channel ;
 
-    public NettyClient() {
+    public NettyClient(NettyMessageCallBack callBack) {
         String host = "localhost";
         int port = 8189;
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -33,7 +33,7 @@ public class NettyClient {
                         ch.pipeline().addLast(
                                 new ObjectEncoder(),
                                 new ObjectDecoder(1024 * 1024 * 100, ClassResolvers.cacheDisabled(null)),
-                                new ClientHandler(System.out::println)); //TODO Получение сообщения
+                                new ClientHandler(callBack));
                     }
                 });
 
@@ -49,8 +49,13 @@ public class NettyClient {
         nettyThread.start();
     }
 
+    public SocketChannel getChannel() {
+        return channel;
+    }
+
     //Отправляем сообщение на сервер
     public void writeMessage(Object msg) {
         channel.writeAndFlush(msg);
     }
+
 }
