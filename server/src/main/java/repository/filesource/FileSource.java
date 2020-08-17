@@ -1,9 +1,13 @@
 package repository.filesource;
 
 import io.netty.channel.socket.SocketChannel;
+import main.java.message.FilePartMessage;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.Comparator;
 
 // Управляет файлами на сервере
 public class FileSource {
@@ -26,9 +30,25 @@ public class FileSource {
         return true ;
     }
 
-    //Читает файлы
-    public void readFilePart(Path filePath, SocketChannel channel) {
-        //TODO реализовать отправку файла частями
+    //Читает файлы с сервера
+    public boolean readFilePart(Path filePath, SocketChannel channel) {
+            try(FileInputStream fis = new FileInputStream(filePath.toFile())) {
+                int countParts = (int)Math.ceil(fis.available() / 1024f) ;
+                for (int i = 1 ; fis.available() > 0 ; i++) {
+                    byte[] buffer = new byte[1024] ;
+                    FilePartMessage filePart = new FilePartMessage() ;
+                    filePart.setNumberPart(i);
+                    filePart.setCountParts(countParts);
+                    filePart.setPath(filePath.getFileName().toString());
+                    fis.read(buffer);
+                    filePart.setFileContent(buffer);
+                    channel.writeAndFlush(filePart) ;
+                }
+            }catch (Exception e) {
+                e.printStackTrace();
+                return false ;
+            }
+            return true ;
     }
 
     //Создает каталог
@@ -38,6 +58,25 @@ public class FileSource {
         } catch (IOException e) {
             e.printStackTrace();
             return false;
+        }
+        return true ;
+    }
+
+    //Удалить файл
+    public boolean deleteFile(Path filePath) {
+        try {
+            if (Files.isDirectory(filePath)) {
+                // Скопировал данный код, но не понял как он удаляет вложенные файлы
+                Files.walk(filePath)
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            } else {
+                Files.delete(filePath);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false ;
         }
         return true ;
     }

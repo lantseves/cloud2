@@ -154,5 +154,3 @@ ELSE
 END IF;
 END$$
 DELIMITER ;
-
-

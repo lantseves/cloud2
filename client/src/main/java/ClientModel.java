@@ -1,12 +1,11 @@
 import main.java.entity.FileResponse;
-import main.java.message.AuthorizationMessage;
-import main.java.message.CreateDirectoryMessage;
-import main.java.message.FileListMessage;
+import main.java.message.*;
 import main.java.response.AuthorizationResponse;
 import main.java.response.FileListResponse;
 import netty.NettyClient;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
@@ -18,9 +17,11 @@ public class ClientModel {
     public static Path DEFAULT_PATH = Paths.get("./client/src/main/user_files") ;
     private static ClientModel instance;
 
-    private NettyClient nettyClient ;
     private AuthListener authListener ;
     private GUIListener guiListener ;
+
+    private NettyClient nettyClient ;
+
     private Path currentPath ;
     private Path currentPathServer ;
 
@@ -52,17 +53,17 @@ public class ClientModel {
             } else if (msg instanceof FileListResponse) {
                 FileListResponse fileListMsg = (FileListResponse) msg ;
                 List<FileResponse> list = fileListMsg.getFileList();
-                if (list.size() > 0) {
-                    guiListener.onChangeFileListCurrentPathServer(list);
-                }
+                guiListener.onChangeFileListCurrentPathServer(list);
+            } else if(msg instanceof FilePartMessage) {
+                FilePartMessage fileMsg = (FilePartMessage) msg ;
+                readFilePart(fileMsg) ;
             }
-            System.out.println(msg);
+            System.out.println("Read server: " + msg);
         });
     }
 
     //Возвращает список файлов в каталоге на клиенте
     public List<Path> getFileList(Path path) {
-
         List<Path> result = new ArrayList<>();
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
             stream.forEach(result::add);
@@ -76,6 +77,14 @@ public class ClientModel {
         return result ;
     }
 
+    //Отправляет запрос на получение списка файлов в каталоге не сервере
+    public void gelFileListServer(String path) {
+        currentPathServer = Paths.get(path) ;
+        guiListener.onChangeCurrentPathServer(currentPathServer);
+        writeServer(new FileListMessage(path));
+    }
+
+    //Поднятся на уровень каталогов вверх на клиенте
     public Path upDirectoryClient() {
         if (!DEFAULT_PATH.equals(currentPath)) {
             return currentPath.getParent() ;
@@ -83,15 +92,20 @@ public class ClientModel {
         return null;
     }
 
+    //Поднятся на уровень каталогов вверх на сервере
     public void upDirectoryServer() {
         if (!"".equals(currentPathServer.toString())) {
             Path parent = currentPathServer.getParent() ;
+
+            //Не выходим выше корня папки на сервере
             if (parent != null) {
-                nettyClient.writeMessage(new FileListMessage(parent.toString()));
+                currentPathServer = parent ;
+                writeServer(new FileListMessage(currentPathServer.toString()));
+                guiListener.onChangeCurrentPathServer(currentPathServer);
             } else {
-                nettyClient.writeMessage(new FileListMessage("./"));
                 currentPathServer = Paths.get("") ;
                 guiListener.onChangeCurrentPathServer(currentPathServer);
+                writeServer(new FileListMessage(""));
             }
 
         }
@@ -122,7 +136,7 @@ public class ClientModel {
 
     //Создает папку в текущем каталоге на сервере
     public void createDirectoryServer(String directoryName) {
-        nettyClient.writeMessage(new CreateDirectoryMessage(currentPathServer.toString() , directoryName));
+        writeServer(new CreateDirectoryMessage(currentPathServer.toString() , directoryName));
     }
 
     //Удаляет файл
@@ -143,16 +157,46 @@ public class ClientModel {
         this.guiListener.onChangeFileListCurrentPath(currentPath);
     }
 
+    //Удаляет файл на сервере
+    public void deleteFileServer(Path file) {
+        writeServer(new DeleteFileMessage(file.toString()));
+    }
+
+    //Отправить файл на сервер
+    public void writeFileToServer(Path path) {
+        Path result ;
+        if ("".equals(currentPathServer.toString())) {
+            result = Paths.get(path.getFileName().toString());
+        } else {
+            result = Paths.get(currentPathServer + "/" + path.getFileName());
+        }
+        try(FileInputStream fis = new FileInputStream(path.toFile())) {
+            int countParts = (int)Math.ceil(fis.available() / 1024f) ;
+            for (int i = 1 ; fis.available() > 0 ; i++) {
+                byte[] buffer = new byte[1024] ;
+                FilePartMessage filePart = new FilePartMessage() ;
+                filePart.setNumberPart(i);
+                filePart.setCountParts(countParts);
+                filePart.setPath(result.toString());
+                filePart.setParent(currentPathServer.toString());
+                fis.read(buffer);
+                filePart.setFileContent(buffer);
+                writeServer(filePart);
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //Получить файл с сервера
+    public void downloadFile(Path filePath) {
+        writeServer(new DownloadFileMessage(filePath.toString()));
+    }
+
     //Отправляет запрос авторизации
     public void authorizationClient(String login, String password) {
         if (login.length() > 0 && password.length() > 0)
-        nettyClient.writeMessage(new AuthorizationMessage(login, password));
-    }
-
-    public void gelFileListServer(String path) {
-        currentPathServer = Paths.get(path) ;
-        guiListener.onChangeCurrentPathServer(currentPathServer);
-        nettyClient.writeMessage(new FileListMessage(path));
+        writeServer(new AuthorizationMessage(login, password));
     }
 
     //Закрываем соединение с сервером
@@ -167,4 +211,36 @@ public class ClientModel {
     public void setGuiListener(GUIListener guiListener) {
         this.guiListener = guiListener;
     }
+
+    //обрабатывает получение части файла с сервера
+    private void readFilePart(FilePartMessage fileMsg) {
+        Path path = Paths.get(fileMsg.getPath()) ;
+        Path filePath = Paths.get(currentPath  + "/" + path.getFileName()) ;
+
+        //Определяем это первый пакет или нет
+        boolean appended = fileMsg.getNumberPart() != 1 ;
+        try {
+            if (Files.notExists(filePath)) {
+                Files.createDirectories(filePath.getParent()) ;
+            }
+            if (!appended) {
+                Files.write(filePath, fileMsg.getFileContent(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            } else {
+                Files.write(filePath, fileMsg.getFileContent(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (fileMsg.getNumberPart() == fileMsg.getCountParts())
+            guiListener.onChangeFileListCurrentPath(currentPath);
+    }
+
+    //Отправляет данные на сервер
+    private void writeServer(Object obj) {
+        System.out.println("Write server: " + obj);
+        nettyClient.writeMessage(obj);
+    }
+
+
 }

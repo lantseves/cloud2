@@ -78,7 +78,7 @@
       </GridPane.margin>
    </TableView>
 
-   <FlowPane alignment="CENTER" orientation="VERTICAL" vgap="8" GridPane.columnIndex="1" GridPane.rowIndex="2" disable="true">
+   <FlowPane fx:id="fpBtns" alignment="CENTER" orientation="VERTICAL" vgap="8" GridPane.columnIndex="1" GridPane.rowIndex="2" disable="true">
       <Button fx:id="btnUpload">
          <graphic>
             <ImageView fitHeight="12.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">

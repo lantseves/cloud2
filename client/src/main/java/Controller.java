@@ -10,12 +10,11 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import main.java.entity.FileResponse;
-import main.java.message.FileListMessage;
-import main.java.response.FileListResponse;
 
 import java.io.IOException;
 import java.net.URL;
@@ -38,6 +37,7 @@ public class Controller implements Initializable {
 
     public Button btnUpload;
     public Button btnDownload;
+    public FlowPane fpBtns;
 
     //Сервер
     public TableView<FileView> tableViewServer;
@@ -64,13 +64,15 @@ public class Controller implements Initializable {
         initBtnDeleteFile();
         tfCurrentPath.setText(".");
 
+        initBtnUpload() ;
+        initBtnDownload() ;
+        // TODO public Button btnDownload;
+
         //Сервер
         initTableViewServer();
-        btnUpDirectoryServer.setOnAction(event -> {
-            clientModel.upDirectoryServer();
-        });
-
-
+        initBtnUpDirectoryServer();
+        initBtnAddDirectoryServer();
+        initBtnDeleteFileServer();
     }
 
     // В данном методе вешается слушатель на ClientModel и описываются обработчики
@@ -80,7 +82,6 @@ public class Controller implements Initializable {
             @Override
             public void onChangeCurrentPath(Path currentPath) {
                 Platform.runLater(() -> {
-                    System.out.println(currentPath);
                     tfCurrentPath.setText(currentPath.toString());
                 });
             }
@@ -88,7 +89,6 @@ public class Controller implements Initializable {
             @Override
             public void onChangeCurrentPathServer(Path currentPath) {
                 Platform.runLater(() -> {
-                    System.out.println(currentPath);
                     tfCurrentPathServer.setText(currentPath.toString());
                 });
             }
@@ -100,7 +100,8 @@ public class Controller implements Initializable {
                     tableViewServer.setDisable(false);
                     hbCurrentPath.setDisable(false);
                     hbButtonsServer.setDisable(false);
-                    clientModel.gelFileListServer("./");
+                    fpBtns.setDisable(false);
+                    clientModel.gelFileListServer("");
                 });
             }
 
@@ -112,6 +113,22 @@ public class Controller implements Initializable {
             @Override
             public void onChangeFileListCurrentPathServer(List<FileResponse> list) {
                 tableViewServer.setItems(getFileListServer(list));
+            }
+        });
+    }
+
+    private void initBtnAuthUser() {
+        btnAuthUser.setOnAction(event -> {
+            try {
+                Parent root = FXMLLoader.load(getClass().getResource("auth.fxml"));
+                Stage dialogStage = new Stage();
+                dialogStage.setTitle("Окно авторизации");
+                dialogStage.setScene(new Scene(root));
+                dialogStage.setResizable(false);
+                dialogStage.initModality(Modality.APPLICATION_MODAL);
+                dialogStage.show();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
     }
@@ -180,6 +197,24 @@ public class Controller implements Initializable {
         });
     }
 
+
+    private void initBtnUpload() {
+        btnUpload.setOnAction(event -> {
+            FileView file = tableViewClient.getSelectionModel().getSelectedItem() ;
+            if (file != null)
+                clientModel.writeFileToServer(file.getPath());
+        });
+    }
+
+    private void initBtnDownload() {
+        btnDownload.setOnAction(event -> {
+            FileView file = tableViewServer.getSelectionModel().getSelectedItem() ;
+            if (file != null)
+                clientModel.downloadFile(file.getPath());
+        });
+    }
+
+
     private void initTableViewServer() {
         initTableViewColumn(tableViewServer);
         tableViewServer.setOnMouseClicked( event -> {
@@ -192,12 +227,18 @@ public class Controller implements Initializable {
         });
     }
 
-    private void initBtnAuthUser() {
-        btnAuthUser.setOnAction(event -> {
+    private void initBtnUpDirectoryServer() {
+        btnUpDirectoryServer.setOnAction(event -> {
+            clientModel.upDirectoryServer();
+        });
+    }
+
+    private void initBtnAddDirectoryServer() {
+        btnAddDirectoryServer.setOnAction(event -> {
             try {
-                Parent root = FXMLLoader.load(getClass().getResource("auth.fxml"));
+                Parent root = FXMLLoader.load(getClass().getResource("create_directory_server.fxml"));
                 Stage dialogStage = new Stage();
-                dialogStage.setTitle("Окно авторизации");
+                dialogStage.setTitle("Имя папки");
                 dialogStage.setScene(new Scene(root));
                 dialogStage.setResizable(false);
                 dialogStage.initModality(Modality.APPLICATION_MODAL);
@@ -208,6 +249,14 @@ public class Controller implements Initializable {
         });
     }
 
+    private void initBtnDeleteFileServer() {
+        btnDeleteFileServer.setOnAction(event -> {
+            FileView file = tableViewServer.getSelectionModel().getSelectedItem() ;
+            if (file != null && !file.isDirectory()) clientModel.deleteFileServer(file.getPath());
+        });
+    }
+
+    //Иниализирует столбцы в TableView
     private void initTableViewColumn(TableView<FileView> tableView) {
         TableColumn<FileView, ImageView> fileImageCol = new TableColumn<>("");
         fileImageCol.setCellValueFactory(new PropertyValueFactory<>("fileImage"));
@@ -239,6 +288,7 @@ public class Controller implements Initializable {
         tableView.getColumns().addAll(fileImageCol, fileNameCol, fileDateModCol, fileSizeCol);
     }
 
+    //Преобразует List<Path> в ObservableList<FileView>
     private ObservableList<FileView> getFileList(Path path) {
         List<FileView> list = clientModel.getFileList(path)
                 .stream()
@@ -248,6 +298,7 @@ public class Controller implements Initializable {
         return  FXCollections.observableArrayList(list);
     }
 
+    //Преобразует List<FileResponse> в ObservableList<FileView>
     private ObservableList<FileView> getFileListServer(List<FileResponse> list) {
         List<FileView> result = list.stream()
                 .map(i ->{

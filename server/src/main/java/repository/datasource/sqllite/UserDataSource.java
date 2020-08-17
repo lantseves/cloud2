@@ -1,4 +1,4 @@
-package repository.datasource.mysql;
+package repository.datasource.sqllite;
 
 import repository.entity.User;
 

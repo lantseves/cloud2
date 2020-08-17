@@ -7,6 +7,7 @@ public class FilePartMessage implements Serializable {
     private int numberPart ;
     private int countParts;
     private String path;
+    private String parent ;
     private byte[] fileContent;
 
     public FilePartMessage() {
@@ -51,12 +52,21 @@ public class FilePartMessage implements Serializable {
         this.fileContent = fileContent;
     }
 
+    public String getParent() {
+        return parent;
+    }
+
+    public void setParent(String parent) {
+        this.parent = parent;
+    }
+
     @Override
     public String toString() {
         return "FilePartMessage{" +
                 "numberPart=" + numberPart +
                 ", countParts=" + countParts +
                 ", path='" + path + '\'' +
+                ", parent='" + parent + '\'' +
                 ", fileContent=" + Arrays.toString(fileContent) +
                 '}';
     }

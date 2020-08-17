@@ -1,4 +1,4 @@
-package repository.datasource.mysql;
+package repository.datasource.sqllite;
 
 import repository.datasource.DataSource;
 import repository.entity.File;
@@ -149,13 +149,12 @@ public class FileDataSource {
     public void deleteFile(File file) {
         try {
             PreparedStatement preparedStatement = conn.prepareStatement("DELETE FROM files WHERE (id = ?)");
-            preparedStatement.setInt(3, file.getId());
+            preparedStatement.setInt(1, file.getId());
             preparedStatement.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 
     private File parseFile(ResultSet rs) {
         File file = new File() ;
