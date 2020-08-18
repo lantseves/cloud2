@@ -1,18 +1,159 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane alignment="center" hgap="10" vgap="10" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller">
-   <AnchorPane prefHeight="365.0" prefWidth="443.0">
-      <Button fx:id="send" layoutX="377.0" layoutY="326.0" mnemonicParsing="false" onAction="#sendCommand" text="Send" />
-      <ListView fx:id="listView" layoutX="14.0" layoutY="14.0" prefHeight="298.0" prefWidth="414.0" />
-      <TextField fx:id="text" layoutX="14.0" layoutY="326.0" prefHeight="25.0" prefWidth="351.0" />
-   </AnchorPane>
-   <columnConstraints>
-      <ColumnConstraints />
-   </columnConstraints>
-   <rowConstraints>
-      <RowConstraints />
-   </rowConstraints>
+<GridPane alignment="center" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller">
+
+   <HBox GridPane.columnIndex="0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0">
+      <GridPane.margin>
+         <Insets bottom="8.0" left="4.0" />
+      </GridPane.margin>
+      <VBox HBox.hgrow="ALWAYS">
+         <Label text="Клиент" />
+         <ButtonBar prefHeight="40.0">
+            <buttons>
+               <Button fx:id="btnAddFile" maxWidth="16" prefWidth="16" ButtonBar.buttonData="LEFT">
+                  <graphic>
+                     <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@file.png" />
+                        <rotationAxis>
+                           <Point3D />
+                        </rotationAxis>
+                     </ImageView>
+                  </graphic>
+                  <tooltip><Tooltip text="Создать файл" /></tooltip>
+               </Button>
+
+               <Button fx:id="btnAddDirectory" ButtonBar.buttonData="LEFT">
+                  <graphic>
+                     <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@directory_Add.png" />
+                     </ImageView>
+                  </graphic>
+                  <tooltip><Tooltip text="Создать папку" /></tooltip>
+               </Button>
+
+               <Button fx:id="btnDeleteFile" ButtonBar.buttonData="LEFT">
+                  <graphic>
+                     <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@file_delete.png" />
+                     </ImageView>
+                  </graphic>
+                  <tooltip><Tooltip text="Удалить" /></tooltip>
+               </Button>
+
+               <Button fx:id="btnAuthUser" ButtonBar.buttonData="RIGHT">
+                  <graphic>
+                     <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@user.png" />
+                     </ImageView>
+                  </graphic>
+                  <tooltip><Tooltip text="Авторизоваться" /></tooltip>
+               </Button>
+            </buttons>
+         </ButtonBar>
+      </VBox>
+   </HBox>
+
+   <HBox GridPane.columnIndex="0" GridPane.rowIndex="1">
+      <Button fx:id="btnUpDirectory">
+         <graphic>
+            <ImageView fitHeight="15.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@directory_top.png" />
+            </ImageView>
+         </graphic>
+      </Button>
+      <TextField fx:id="tfCurrentPath" editable="false" HBox.hgrow="ALWAYS" />
+      <GridPane.margin>
+         <Insets left="4.0" />
+      </GridPane.margin>
+   </HBox>
+
+   <TableView fx:id="tableViewClient" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
+      <GridPane.margin>
+         <Insets bottom="4.0" left="4.0" />
+      </GridPane.margin>
+   </TableView>
+
+   <FlowPane fx:id="fpBtns" alignment="CENTER" orientation="VERTICAL" vgap="8" GridPane.columnIndex="1" GridPane.rowIndex="2" disable="true">
+      <Button fx:id="btnUpload">
+         <graphic>
+            <ImageView fitHeight="12.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@arrow_right.png" />
+            </ImageView>
+         </graphic>
+         <tooltip><Tooltip text="Загрузить на сервер" /></tooltip>
+      </Button>
+      <Button fx:id="btnDownload">
+         <graphic>
+            <ImageView fitHeight="12.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@arrow_left.png" />
+            </ImageView>
+         </graphic>
+         <tooltip><Tooltip text="Скачать на клиент" /></tooltip>
+      </Button>
+      <GridPane.margin>
+         <Insets left="4.0" right="4.0" />
+      </GridPane.margin>
+   </FlowPane>
+
+   <HBox fx:id="hbButtonsServer" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="0" disable="true">
+      <GridPane.margin>
+         <Insets bottom="8.0" left="4.0" />
+      </GridPane.margin>
+      <VBox HBox.hgrow="ALWAYS">
+         <Label text="Сервер" />
+         <ButtonBar prefHeight="40.0">
+            <buttons>
+               <Button fx:id="btnAddDirectoryServer" ButtonBar.buttonData="LEFT">
+                  <graphic>
+                     <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@directory_Add.png" />
+                     </ImageView>
+                  </graphic>
+                  <tooltip><Tooltip text="Создать папку" /></tooltip>
+               </Button>
+
+               <Button fx:id="btnDeleteFileServer" ButtonBar.buttonData="LEFT">
+                  <graphic>
+                     <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@file_delete.png" />
+                     </ImageView>
+                  </graphic>
+                  <tooltip><Tooltip text="Удалить" /></tooltip>
+               </Button>
+
+               <Button ButtonBar.buttonData="RIGHT" visible="false" disable="true">
+                  <graphic>
+                     <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+                        <Image url="@user.png" />
+                     </ImageView>
+                  </graphic>
+                  <tooltip><Tooltip text="Авторизоваться" /></tooltip>
+               </Button>
+            </buttons>
+         </ButtonBar>
+      </VBox>
+   </HBox>
+
+   <HBox fx:id="hbCurrentPath" GridPane.columnIndex="2" GridPane.rowIndex="1" disable="true">
+      <Button fx:id="btnUpDirectoryServer">
+         <graphic>
+            <ImageView fitHeight="15.0" fitWidth="23.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@directory_top.png" />
+            </ImageView>
+         </graphic>
+      </Button>
+      <TextField fx:id="tfCurrentPathServer" editable="false" HBox.hgrow="ALWAYS" />
+      <padding>
+         <Insets right="4.0" />
+      </padding>
+   </HBox>
+   <TableView fx:id="tableViewServer" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS" disable="true">
+      <GridPane.margin>
+         <Insets bottom="4.0" right="4.0" />
+      </GridPane.margin></TableView>
 </GridPane>
